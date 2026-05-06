@@ -30,9 +30,26 @@ const COL_TIMESTAMP    = 6;
  */
 function doPost(e) {
     let studentId = '未知學號';
+
+    // ---------- 不需 lock 的早期檢查 ----------
+    // (a) Fail-fast：管理員是否已替換 SPREADSHEET_ID
+    if (SPREADSHEET_ID === 'REPLACE_WITH_YOUR_NEW_SHEET_ID' || !SPREADSHEET_ID) {
+        Logger.log('SPREADSHEET_ID 尚未設定，拒絕處理。');
+        return _plain('系統尚未完成設定（SPREADSHEET_ID 未填入），請聯絡畢代。');
+    }
+    // (b) Honeypot：人類看不到 website 欄位，bot 會填
+    if (e && e.parameter && e.parameter.website) {
+        Logger.log('honeypot triggered, value=' + e.parameter.website);
+        return _plain('OK'); // 給 bot 一個假成功，不留痕跡到 Sheet
+    }
+
+    // ---------- 真正的處理流程，包進 ScriptLock ----------
+    const lock = LockService.getScriptLock();
     try {
+        lock.waitLock(30000); // 同時送出時最多排隊 30 秒
+
         Logger.log('========= 執行開始 =========');
-        Logger.log('收到的原始參數: ' + JSON.stringify(e.parameter));
+        Logger.log('收到的原始參數: ' + JSON.stringify(_maskSensitive(e.parameter)));
 
         // 1. 驗證並取得基本參數
         if (!e.parameter.studentId) {
@@ -50,13 +67,12 @@ function doPost(e) {
             return _plain('錯誤：後五碼格式不正確（應為 5 或 6 位純數字）。請返回上一頁重新填寫。');
         }
 
-        Logger.log(`已解析參數 - 學號: ${studentId}, 姓名: ${studentName}, 後五碼: ${last5}`);
+        Logger.log(`已解析參數 - 學號: ${studentId}, 姓名: ${studentName}, 後五碼: ${_maskLast5(last5)}`);
 
         // 2. 開啟試算表
         const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
         let sheet = ss.getSheetByName(PAYMENT_SHEET_NAME);
         if (!sheet) {
-            // 第一次執行：自動建立工作表 + 標頭
             sheet = ss.insertSheet(PAYMENT_SHEET_NAME);
             sheet.appendRow(['學號', '姓名', '繳費狀態', '後五碼', '已勾選確認', '提交時間戳']);
             sheet.setFrozenRows(1);
@@ -69,7 +85,6 @@ function doPost(e) {
 
         if (targetRow !== -1) {
             Logger.log(`找到既有學號於第 ${targetRow} 列，更新該列。`);
-            // 若 B 欄已有姓名就保留，否則填入提交的姓名
             const existingName = sheet.getRange(targetRow, COL_STUDENT_NAME).getValue();
             if (!existingName) {
                 sheet.getRange(targetRow, COL_STUDENT_NAME).setValue(studentName);
@@ -82,6 +97,7 @@ function doPost(e) {
             Logger.log('名單中找不到該學號，append 為新列。');
             sheet.appendRow([studentId, studentName, '已繳費待確認', last5, '是', now]);
         }
+        SpreadsheetApp.flush(); // 強制把寫入 commit 出去再釋放 lock
 
         Logger.log('試算表更新完畢。');
 
@@ -92,17 +108,20 @@ function doPost(e) {
         Logger.log('========= 執行發生嚴重錯誤 =========');
         Logger.log(mainError.stack || mainError.toString());
         try {
+            const safeParams = (e && e.parameter) ? _maskSensitive(e.parameter) : null;
             MailApp.sendEmail(
                 ADMIN_EMAIL,
                 '百川畢業學位袍清潔費系統 - CRITICAL ERROR',
                 `學生 ID ${studentId} 發生錯誤：${mainError.toString()}\n\n` +
                 `錯誤堆疊:\n${mainError.stack}\n\n` +
-                `原始資料:\n${JSON.stringify(e && e.parameter)}`
+                `原始資料（敏感欄位已 mask）:\n${JSON.stringify(safeParams)}`
             );
         } catch (mailErr) {
             Logger.log('連寄送錯誤通知信都失敗：' + mailErr.toString());
         }
         return _plain('系統發生嚴重錯誤，畢代已收到通知。請聯繫畢代並提供此訊息：' + mainError.toString());
+    } finally {
+        try { lock.releaseLock(); } catch (_) {}
     }
 }
 
@@ -130,18 +149,55 @@ function _findStudentRow(sheet, studentId) {
     return -1;
 }
 
+/**
+ * 跳轉頁：用 top.location.href 把最外層瀏覽器視窗導走，
+ * 避免 GAS 預設 iframe 包裝造成「網址列卡在 script.google.com」。
+ */
 function _redirect(url) {
+    const safeUrl = JSON.stringify(url); // JS-safe quoted literal
     const html = `<!DOCTYPE html>
-<html><head>
+<html lang="zh-Hant"><head>
 <meta charset="UTF-8">
 <title>正在重新導向...</title>
-<meta http-equiv="refresh" content="0; url='${url}'" />
+<meta http-equiv="refresh" content="2; url=${url}" />
+<script>
+  (function () {
+    try { window.top.location.href = ${safeUrl}; }
+    catch (e) { window.location.href = ${safeUrl}; }
+  })();
+</script>
 </head><body>
-<p>登記成功！如果頁面沒有自動跳轉，請<a href="${url}">點擊這裡</a>。</p>
+<p>登記成功！如果頁面沒有自動跳轉，請<a href="${url}" target="_top">點擊這裡</a>。</p>
 </body></html>`;
-    return HtmlService.createHtmlOutput(html);
+    return HtmlService.createHtmlOutput(html)
+        .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
 }
 
 function _plain(text) {
     return ContentService.createTextOutput(text);
+}
+
+/**
+ * 把 last5 在中間 mask 掉（如 12345 → 1***5），用於 log。
+ */
+function _maskLast5(value) {
+    if (!value || value.length < 2) return '*****';
+    return value[0] + '*'.repeat(value.length - 2) + value[value.length - 1];
+}
+
+/**
+ * 對表單參數做 deep-copy 並把敏感欄位（last5）mask 掉，
+ * 給 Logger / 錯誤通知信使用。
+ */
+function _maskSensitive(params) {
+    if (!params) return params;
+    const out = {};
+    Object.keys(params).forEach(function (k) {
+        if (k === 'last5') {
+            out[k] = _maskLast5(String(params[k] || ''));
+        } else {
+            out[k] = params[k];
+        }
+    });
+    return out;
 }

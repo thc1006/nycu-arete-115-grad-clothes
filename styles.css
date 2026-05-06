@@ -39,32 +39,13 @@ label {
     font-weight: 600;
     font-size: 16px;
 }
-input[type="text"], input[type="datetime-local"] {
+input[type="text"] {
     width: 100%;
     padding: 10px;
     border: 1px solid #ccc;
     border-radius: 4px;
     box-sizing: border-box;
     font-size: 16px;
-}
-input[type="file"] { width: 100%; font-size: 14px; }
-.time-slots-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 10px;
-}
-.time-slot-item {
-    display: flex;
-    align-items: center;
-    padding: 5px;
-    border-radius: 4px;
-    transition: background-color 0.2s;
-}
-.time-slot-item:hover {
-    background-color: #f0f0f0;
-}
-.time-slot-item input {
-    margin-right: 8px;
 }
 button[type="submit"] {
     width: 100%;
@@ -100,4 +81,14 @@ button[type="submit"]:disabled { background-color: #95a5a6; cursor: not-allowed;
     flex-shrink: 0;
     accent-color: #2ecc71;
     cursor: pointer;
+}
+
+/* Honeypot — 人類看不到、bot 看得到的欄位 */
+.hp-field {
+    position: absolute !important;
+    left: -10000px !important;
+    top: auto !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
 }

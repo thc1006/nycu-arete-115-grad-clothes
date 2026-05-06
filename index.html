@@ -56,6 +56,12 @@
                 <input type="text" id="last5" name="last5" required pattern="\d{5,6}" title="請輸入 5 或 6 位數字" placeholder="例如：12345" inputmode="numeric">
             </div>
 
+            <!-- Honeypot：人類看不到，bot 才會填。後端見此欄位有值就直接丟掉。 -->
+            <div class="hp-field" aria-hidden="true">
+                <label for="website">Website</label>
+                <input type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+            </div>
+
             <button type="submit" id="submitBtn">確認提交</button>
         </form>
     </div>
