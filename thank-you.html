@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>提交成功 - 學位袍清潔維護費登記</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .container {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 40px 20px;
+        }
+        .success-icon {
+            font-size: 60px;
+            color: #2ecc71;
+            margin-bottom: 20px;
+            animation: pop-in 0.5s ease-out forwards;
+        }
+        .container h1, .container h2, .container p {
+            animation: fade-in 0.8s ease-out forwards;
+            opacity: 0;
+            animation-delay: 0.2s;
+        }
+        .container h2 { animation-delay: 0.4s; }
+        .container p { animation-delay: 0.6s; }
+
+        .pickup-box {
+            background-color: #fff8e1;
+            border: 1px solid #ffe082;
+            border-left: 5px solid #e67e22;
+            border-radius: 8px;
+            padding: 20px 24px;
+            margin-top: 24px;
+            max-width: 480px;
+            width: 100%;
+            text-align: left;
+            animation: fade-in 1s ease-out forwards;
+            animation-delay: 0.8s;
+            opacity: 0;
+        }
+        .pickup-box h3 {
+            margin-top: 0;
+            color: #d35400;
+        }
+        .pickup-box p { margin: 6px 0; }
+        .pickup-box .key {
+            display: inline-block;
+            min-width: 6em;
+            font-weight: 600;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 30px;
+            padding: 12px 25px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 500;
+            transition: background-color 0.3s, transform 0.2s;
+            animation: fade-in 1.2s ease-out forwards;
+            animation-delay: 1s;
+            opacity: 0;
+        }
+        .back-link:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+        }
+
+        @keyframes pop-in {
+            0% { transform: scale(0.5); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes fade-in {
+            0% { opacity: 0; transform: translateY(10px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-icon">&#10003;</div>
+        <h1>繳費登記成功！</h1>
+        <h2>感謝您完成 NT$ 350 學位袍清潔維護費登記。</h2>
+
+        <div class="pickup-box">
+            <h3>學位袍領取資訊</h3>
+            <p><span class="key">領取日期：</span>2026 年 5 月 11 日（星期一）</p>
+            <p><span class="key">領取時段：</span>12:00</p>
+            <p><span class="key">領取地點：</span>綜合一館 509（系窩）</p>
+            <p style="color:#c0392b; margin-top:12px;">＊請務必準時前來領取，逾時恕不另行補發。</p>
+        </div>
+
+        <p style="margin-top:24px;">如需確認對帳狀態或有任何問題，請洽詢畢代。</p>
+        <a href="index.html" class="back-link">返回登記頁</a>
+    </div>
+</body>
+</html>

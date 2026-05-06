@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>百川學程115級 畢業學位袍清潔維護費登記</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>百川學程115級</h1>
+        <h2>畢業學位袍清潔維護費 繳費登記</h2>
+
+        <div class="info-box">
+            <h3>繳費資訊</h3>
+            <p><strong>應繳金額：</strong>每人 <span class="highlight">NT$ 350</span>（學位袍清潔維護費，每套 350 元）</p>
+            <hr>
+            <p><strong>銀行：</strong>玉山銀行 (808)</p>
+            <p><strong>帳號：</strong>0978979142518</p>
+            <p><strong>戶名：</strong>蔡O羿</p>
+        </div>
+
+        <div class="info-box" style="border-left-color:#e67e22;">
+            <h3>學位袍領取資訊</h3>
+            <p><strong>領取日期：</strong>2026 年 5 月 11 日（星期一）</p>
+            <p><strong>領取時段：</strong>12:00</p>
+            <p><strong>領取地點：</strong>綜合一館 509（系窩）</p>
+        </div>
+
+        <!--
+            重要！請將 action 的網址替換成您部署後的 Google Apps Script 網址
+        -->
+        <form id="mainForm"
+              action="https://script.google.com/macros/s/REPLACE_WITH_YOUR_NEW_DEPLOYMENT_ID/exec"
+              method="POST">
+
+            <div class="form-group">
+                <label for="studentId">1. 請輸入您的學號</label>
+                <input type="text" id="studentId" name="studentId" required placeholder="例如：111501001">
+            </div>
+
+            <div class="form-group">
+                <label for="studentName">2. 請輸入您的姓名</label>
+                <input type="text" id="studentName" name="studentName" required placeholder="例如：王小明">
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox-label" for="paid">
+                    <input type="checkbox" id="paid" name="paid" value="yes" required>
+                    <span>3. 我已完成 <span class="highlight">NT$ 350</span> 學位袍清潔維護費匯款（必填勾選）</span>
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label for="last5">4. 您的匯款帳號後五碼</label>
+                <input type="text" id="last5" name="last5" required pattern="\d{5,6}" title="請輸入 5 或 6 位數字" placeholder="例如：12345" inputmode="numeric">
+            </div>
+
+            <button type="submit" id="submitBtn">確認提交</button>
+        </form>
+    </div>
+
+    <script src="javascript.js"></script>
+</body>
+</html>
